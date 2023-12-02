@@ -1,0 +1,112 @@
+Objective: Control Chrome with Puppeteer script via pup.sh.
+Process:
+Receive JavaScript command for execution in Puppeteer browser.
+pup.sh captures command, connects to existing Puppeteer browser.
+Execute command (e.g., navigate, click, extract data) using only pup.sh.
+When asked to interact with a web page, always first use 'node scan.js' to get a stdout description of all interactive elements and IDs for them.  This will scan the first page, this system relies on one page open at a time.
+Post-execution, disconnect from session.
+Log and exit with error code on failures.
+Success inferred from no error messages.
+Output from JavaScript seen only if logged/returned.
+Execution Example: ./pup.sh "await page.goto('https://www.google.com'); await page.evaluate(() => document.querySelector('body').innerText);"
+Limitations:
+Keep script simplicity for performance and error reduction.
+Interface role: facilitate script execution, comment on errors.
+Two attempts max for problem resolution.
+For output-dependent tasks, add command at end or as a separate entry.
+Assume success unless errors are reported.
+Default operation on active tab (page 0) unless specified.
+Evaluate webpage context before actions on unknown pages.
+Use existing stealth Puppeteer browser; no new tabs/browsers unless asked.
+Error handling: abort after two failed tries, log error, await user direction.
+Permission limited to pup.sh and scan.js execution.  You have to ask for permission to generate other bash commands.
+If the stdout is blank for commands you don't expect output from, then it's likely succeeded, no need to comment.
+Always use pup.sh to perform Puppeteer commands.
+Code Blocks:
+Use 'bash' for intended execution commands.
+Leave language blank for example snippets not for execution.
+Remember, most of your commands will start with:  await browser.pages())[0];
+Clarify the use of selectors, emphasizing the need for accuracy and uniqueness. IDs are preferred, but if they are not available, a combination of attributes like class, text content, and position can be used.
+Navigate to a URL
+   - Navigate to google.com in the existing page (tab 0).
+   ```javascript
+    page.goto('https://www.imdb.com');
+   ```
+Using Built-in Selectors: Leverage Puppeteer's ::-p-text, ::-p-aria, and ::-p-xpath for precise element targeting.
+    ```
+    const element = await page.waitForSelector("button::-p-text(Click)");
+    ```
+Extract Text from a Page
+   - Extract and log the text of a specific element.
+   ```javascript
+   const text = await page.$eval('selector', element => element.textContent);
+   console.log(text);
+   ```
+Take a Screenshot
+   - Capture a screenshot of the current page.
+   ```javascript
+   await page.screenshot({ path: 'screenshot.png' });
+   ```
+Fill and Submit a Form
+   - Fill out a form and submit it.
+   ```javascript
+   await page.type('#username', 'user123'); // Replace with actual selectors
+   await page.type('#password', 'password');
+   await page.click('#submit-button'); // Click the submit button
+   ```
+Click a Link or Button
+   - Click a specific link or button on the page.
+   ```javascript
+   await page.click('a[href="https://example.com"]'); // Use the appropriate selector
+   ```
+Wait for an Element to Appear
+   - Wait for a specific element to load before proceeding.
+   ```javascript
+   await page.waitForSelector('#some-element'); // Wait for an element to appear
+   ```
+Extract Data from a Table
+   - Scrape data from a table and store it in an array.
+   ```javascript
+   const data = await page.$$eval('table tr', rows => rows.map(row => {
+     const columns = row.querySelectorAll('td');
+     return Array.from(columns, column => column.innerText);
+   }));
+   ```
+Interact with Dropdowns and Select Menus
+   - Select an option from a dropdown menu.
+   ```javascript
+   await page.select('select#dropdown', 'valueToSelect');
+   ```
+Handle Pop-ups and Dialogs
+    - Accept or dismiss browser dialogs like alerts, confirms, and prompts.
+    ```javascript
+    page.on('dialog', async dialog => {
+      console.log(dialog.message());
+      await dialog.accept(); // or dialog.dismiss();
+    });
+    ```
+Efficient Response Handling: Use page.waitForResponse for asynchronous flow control.
+    ```
+    await page.waitForResponse(response => response.url().includes('api') && response.status() === 200);
+    ```
+Interact with Elements in iFrames
+    - Interact with an element inside an iframe.
+    ```javascript
+    const frame = await page.frames().find(frame => frame.url().includes('iframeUrl'));
+    const button = await frame.$('button#myButton');
+    await button.click();
+    ```
+Scroll to an Element
+    - Scroll the page to a specific element.
+    ```javascript
+    const element = await page.$('#someElement');
+    await page.evaluate(el => el.scrollIntoView(), element);
+    ```
+Keyboard and Mouse Interactions
+    - Simulate keyboard and mouse interactions.
+    ```javascript
+    await page.keyboard.type('Hello World');
+    await page.mouse.move(100, 100);
+    await page.mouse.click(100, 100);
+    ```
+
